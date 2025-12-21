@@ -1,24 +1,20 @@
 <?php
+// Load .env (KHUSUS DEV / LARAGON)
+$envPath = __DIR__ . '/../.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        putenv(trim($line));
+    }
+}
+
 function http_request_get($url) {
-    // persiapkan curl
-    $ch = curl_init(); 
- 
-    // set url 
+    $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
- 
-    // konversi hasil ke string
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
- 
-     // deteksi user agent
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); 
- 
-    // eksekusi
-    $output = curl_exec($ch); 
- 
-    // tutup curl 
-    curl_close($ch);      
- 
-    // mengembalikan hasil curl
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0');
+    $output = curl_exec($ch);
+    curl_close($ch);
     return $output;
 }
-?>
