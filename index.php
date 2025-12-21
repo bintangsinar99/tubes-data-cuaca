@@ -1,13 +1,17 @@
 <?php
 session_start();
-include("config/config.php");
+
+/* =====================
+   LOAD CONFIG (WAJIB)
+===================== */
+require_once __DIR__ . "/config/config.php";
 
 /* =====================
    API KEY
 ===================== */
 $api_key = getenv("API_KEY");
 if (empty($api_key)) {
-    die("API Key tidak ditemukan");
+    die("API Key tidak ditemukan. Silakan set environment variable API_KEY.");
 }
 
 /* =====================
@@ -27,27 +31,32 @@ $url = "https://api.openweathermap.org/data/2.5/weather?q="
 $data  = http_request_get($url);
 $hasil = json_decode($data, true);
 
+/* =====================
+   ERROR HANDLING
+===================== */
 $error = null;
-if (!isset($hasil['cod']) || $hasil['cod'] != 200) {
-    $error = $hasil['message'] ?? 'Terjadi kesalahan';
+if (!$hasil || !isset($hasil['cod']) || $hasil['cod'] != 200) {
+    $error = $hasil['message'] ?? 'Gagal mengambil data cuaca';
 }
 
 /* =====================
    BACKGROUND DINAMIS
 ===================== */
 $bgGif = "assets/bg/cloudy.gif";
-if (!$error) {
+if (!$error && isset($hasil['weather'][0]['main'])) {
     $weatherMain = strtolower($hasil['weather'][0]['main']);
-    if (str_contains($weatherMain, 'rain')) {
+
+    if (strpos($weatherMain, 'rain') !== false) {
         $bgGif = "assets/bg/rain.gif";
-    } elseif (str_contains($weatherMain, 'clear')) {
+    } elseif (strpos($weatherMain, 'clear') !== false) {
         $bgGif = "assets/bg/clear.gif";
     }
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>REST Client Data Cuaca</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
 
@@ -61,7 +70,7 @@ if (!$error) {
             background-size: cover;
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
-            color: #fff;
+            color: #ffffff;
         }
 
         .weather-card {
@@ -99,11 +108,14 @@ if (!$error) {
 
 <div class="container mt-5">
 
-    <h2 class="text-center text-warning mb-4">Data Cuaca</h2>
+    <h2 class="text-center text-warning mb-4">
+        Data Cuaca
+    </h2>
 
     <!-- FORM INPUT KOTA -->
     <form method="GET" class="mb-4 text-center">
-        <input type="text" name="city"
+        <input type="text"
+               name="city"
                value="<?= htmlspecialchars($city); ?>"
                placeholder="Masukkan nama kota"
                class="form-control w-50 mx-auto mb-2"
@@ -123,7 +135,7 @@ if (!$error) {
             <h4><?= htmlspecialchars($hasil['name']); ?></h4>
 
             <img src="https://openweathermap.org/img/wn/<?= $hasil['weather'][0]['icon']; ?>@4x.png"
-                 alt="Weather Icon">
+                 alt="Ikon Cuaca">
 
             <div class="weather-temp-main">
                 <?= round($hasil['main']['temp']); ?>°C
@@ -138,7 +150,9 @@ if (!$error) {
                 <?= htmlspecialchars($hasil['weather'][0]['description']); ?>
             </div>
 
-            <p>Kelembapan: <?= $hasil['main']['humidity']; ?> %</p>
+            <p>
+                Kelembapan: <?= $hasil['main']['humidity']; ?> %
+            </p>
 
         </div>
     <?php endif; ?>
