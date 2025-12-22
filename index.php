@@ -40,6 +40,25 @@ if (!$hasil || !isset($hasil['cod']) || $hasil['cod'] != 200) {
 }
 
 /* =====================
+   RIWAYAT PENCARIAN
+===================== */
+if (!isset($_SESSION['history'])) {
+    $_SESSION['history'] = [];
+}
+
+if (!$error && $city) {
+    if (!in_array($city, $_SESSION['history'])) {
+        $_SESSION['history'][] = $city;
+    }
+}
+
+if (isset($_GET['clear']) && $_GET['clear'] == 1) {
+    $_SESSION['history'] = [];
+    header("Location: index.php");
+    exit;
+}
+
+/* =====================
    BACKGROUND DINAMIS
 ===================== */
 $bgGif = "assets/bg/cloudy.gif";
@@ -76,30 +95,25 @@ if (!$error && isset($hasil['weather'][0]['main'])) {
         .weather-card {
             background: rgba(255,255,255,0.15);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border-radius: 25px;
             padding: 45px 25px;
             max-width: 520px;
             margin: 0 auto;
             box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.25);
         }
 
         .weather-temp-main {
             font-size: 96px;
             font-weight: 300;
-            line-height: 1;
-        }
-
-        .weather-range {
-            font-size: 18px;
-            opacity: 0.9;
         }
 
         .weather-desc {
-            font-size: 18px;
             text-transform: capitalize;
-            margin-bottom: 15px;
+        }
+
+        .btn-outline-light:hover {
+            background-color: #ffc107;
+            color: #000;
         }
     </style>
 </head>
@@ -107,56 +121,53 @@ if (!$error && isset($hasil['weather'][0]['main'])) {
 <body class="weather-ui">
 
 <div class="container mt-5">
+    <h2 class="text-center text-warning mb-4">Data Cuaca</h2>
 
-    <h2 class="text-center text-warning mb-4">
-        Data Cuaca
-    </h2>
-
-    <!-- FORM INPUT KOTA -->
-    <form method="GET" class="mb-4 text-center">
-        <input type="text"
-               name="city"
+    <!-- FORM INPUT -->
+    <form method="GET" class="text-center mb-3">
+        <input type="text" name="city"
                value="<?= htmlspecialchars($city); ?>"
-               placeholder="Masukkan nama kota"
                class="form-control w-50 mx-auto mb-2"
                required>
-        <button type="submit" class="btn btn-warning">
-            Cari Cuaca
-        </button>
+        <button class="btn btn-warning">Cari Cuaca</button>
     </form>
 
+    <!-- RIWAYAT -->
+    <?php if (!empty($_SESSION['history'])): ?>
+        <div class="text-center mb-3">
+            <h5>Riwayat Pencarian</h5>
+            <?php foreach ($_SESSION['history'] as $kota): ?>
+                <a href="?city=<?= urlencode($kota); ?>"
+                   class="btn btn-outline-light btn-sm m-1">
+                    <?= htmlspecialchars($kota); ?>
+                </a>
+            <?php endforeach; ?>
+            <div class="mt-2">
+                <a href="?clear=1" class="btn btn-danger btn-sm">
+                    Hapus Riwayat
+                </a>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- HASIL -->
     <?php if ($error): ?>
         <div class="alert alert-danger text-center">
             <?= htmlspecialchars($error); ?>
         </div>
     <?php else: ?>
-        <div class="weather-card text-center mt-4">
-
+        <div class="weather-card text-center">
             <h4><?= htmlspecialchars($hasil['name']); ?></h4>
-
-            <img src="https://openweathermap.org/img/wn/<?= $hasil['weather'][0]['icon']; ?>@4x.png"
-                 alt="Ikon Cuaca">
-
+            <img src="https://openweathermap.org/img/wn/<?= $hasil['weather'][0]['icon']; ?>@4x.png">
             <div class="weather-temp-main">
                 <?= round($hasil['main']['temp']); ?>°C
             </div>
-
-            <div class="weather-range">
-                <?= round($hasil['main']['temp_max']); ?>° /
-                <?= round($hasil['main']['temp_min']); ?>°
-            </div>
-
             <div class="weather-desc">
                 <?= htmlspecialchars($hasil['weather'][0]['description']); ?>
             </div>
-
-            <p>
-                Kelembapan: <?= $hasil['main']['humidity']; ?> %
-            </p>
-
+            <p>Kelembapan: <?= $hasil['main']['humidity']; ?>%</p>
         </div>
     <?php endif; ?>
-
 </div>
 
 </body>
