@@ -40,6 +40,35 @@ if (!$hasil || !isset($hasil['cod']) || $hasil['cod'] != 200) {
 }
 
 /* =====================
+   API FORECAST 5 HARI
+===================== */
+$forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q="
+    . urlencode($city)
+    . "&appid=$api_key&units=metric&lang=id";
+
+$forecastData = http_request_get($forecastUrl);
+$forecastJson = json_decode($forecastData, true);
+
+/* Ambil suhu rata-rata per hari */
+$dailyTemp = [];
+
+if (isset($forecastJson['list'])) {
+    foreach ($forecastJson['list'] as $item) {
+        $date = date('Y-m-d', strtotime($item['dt_txt']));
+        $dailyTemp[$date][] = $item['main']['temp'];
+    }
+}
+
+/* Hitung rata-rata suhu harian */
+$chartLabels = [];
+$chartTemps  = [];
+
+foreach ($dailyTemp as $date => $temps) {
+    $chartLabels[] = date('d M', strtotime($date));
+    $chartTemps[]  = round(array_sum($temps) / count($temps));
+}
+
+/* =====================
    RIWAYAT PENCARIAN
 ===================== */
 if (!isset($_SESSION['history'])) {
@@ -77,7 +106,10 @@ if (!$error && isset($hasil['weather'][0]['main'])) {
 <head>
     <meta charset="UTF-8">
     <title>REST Client Data Cuaca</title>
+
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
     <style>
         body.weather-ui {
@@ -166,9 +198,50 @@ if (!$error && isset($hasil['weather'][0]['main'])) {
                 <?= htmlspecialchars($hasil['weather'][0]['description']); ?>
             </div>
             <p>Kelembapan: <?= $hasil['main']['humidity']; ?>%</p>
+
+            <hr class="text-white">
+            <h6 class="mt-3">Prakiraan Suhu 5 Hari</h6>
+            <canvas id="forecastChart" height="120"></canvas>
+
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+const ctx = document.getElementById('forecastChart');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?= json_encode($chartLabels); ?>,
+        datasets: [{
+            label: 'Suhu (°C)',
+            data: <?= json_encode($chartTemps); ?>,
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#ffffff'
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#ffffff' }
+            },
+            y: {
+                ticks: { color: '#ffffff' }
+            }
+        }
+    }
+});
+</script>
 
 </body>
 </html>
