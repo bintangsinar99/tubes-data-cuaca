@@ -38,6 +38,63 @@ $error = null;
 if (!$hasil || !isset($hasil['cod']) || $hasil['cod'] != 200) {
     $error = $hasil['message'] ?? 'Gagal mengambil data cuaca';
 }
+/* =====================
+   AIR QUALITY INDEX (AQI)
+===================== */
+$aqiData = null;
+$aqiText = null;
+
+if (!$error && isset($hasil['coord'])) {
+    $lat = $hasil['coord']['lat'];
+    $lon = $hasil['coord']['lon'];
+
+    $aqiUrl = "https://api.openweathermap.org/data/2.5/air_pollution?lat=$lat&lon=$lon&appid=$api_key";
+    $aqiResponse = http_request_get($aqiUrl);
+    $aqiJson = json_decode($aqiResponse, true);
+
+    if (isset($aqiJson['list'][0]['main']['aqi'])) {
+        $aqiData = $aqiJson['list'][0]['main']['aqi'];
+
+        // Konversi AQI ke teks
+        switch ($aqiData) {
+            case 1: $aqiText = "Baik"; break;
+            case 2: $aqiText = "Sedang"; break;
+            case 3: $aqiText = "Tidak Sehat (Sensitif)"; break;
+            case 4: $aqiText = "Tidak Sehat"; break;
+            case 5: $aqiText = "Sangat Tidak Sehat"; break;
+            default: $aqiText = "Tidak diketahui";
+        }
+    }
+}
+
+/* =====================
+   AIR QUALITY INDEX (AQI)
+===================== */
+$aqiData = null;
+$aqiText = null;
+
+if (!$error && isset($hasil['coord'])) {
+    $lat = $hasil['coord']['lat'];
+    $lon = $hasil['coord']['lon'];
+
+    $aqiUrl = "https://api.openweathermap.org/data/2.5/air_pollution?lat=$lat&lon=$lon&appid=$api_key";
+    $aqiResponse = http_request_get($aqiUrl);
+    $aqiJson = json_decode($aqiResponse, true);
+
+    if (isset($aqiJson['list'][0]['main']['aqi'])) {
+        $aqiData = $aqiJson['list'][0]['main']['aqi'];
+
+        // Konversi AQI ke teks
+        switch ($aqiData) {
+            case 1: $aqiText = "Baik"; break;
+            case 2: $aqiText = "Sedang"; break;
+            case 3: $aqiText = "Tidak Sehat (Sensitif)"; break;
+            case 4: $aqiText = "Tidak Sehat"; break;
+            case 5: $aqiText = "Sangat Tidak Sehat"; break;
+            default: $aqiText = "Tidak diketahui";
+        }
+    }
+}
 
 /* =====================
    API FORECAST 5 HARI
@@ -198,7 +255,13 @@ if (!$error && isset($hasil['weather'][0]['main'])) {
                 <?= htmlspecialchars($hasil['weather'][0]['description']); ?>
             </div>
             <p>Kelembapan: <?= $hasil['main']['humidity']; ?>%</p>
-
+<?php if ($aqiData): ?>
+    <p>
+        Kualitas Udara (AQI):
+        <strong><?= $aqiText; ?></strong>
+        <small>(Level <?= $aqiData; ?>)</small>
+    </p>
+<?php endif; ?>
             <hr class="text-white">
             <h6 class="mt-3">Prakiraan Suhu 5 Hari</h6>
             <canvas id="forecastChart" height="120"></canvas>
