@@ -11,9 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # =========================
+      # Test Case 1: Checkout Repo
+      # =========================
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # =========================
+      # Setup PHP
+      # =========================
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -21,11 +27,36 @@ jobs:
           extensions: curl
           coverage: none
 
+      # =========================
+      # Test Case 2: API Key tersedia
+      # =========================
       - name: Check API Key
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
-          php -r "if (!getenv('API_KEY')) { exit(1); } echo 'API_KEY OK';"
+          php -r "if (!getenv('API_KEY')) { echo 'API_KEY NOT FOUND'; exit(1); } echo 'API_KEY OK';"
 
-      - name: Check index.php syntax
+      # =========================
+      # Test Case 3: File index.php ada
+      # =========================
+      - name: Check index.php exists
+        run: test -f index.php
+
+      # =========================
+      # Test Case 4: File config/config.php ada
+      # =========================
+      - name: Check config file exists
+        run: test -f config/config.php
+
+      # =========================
+      # Test Case 5: Fungsi http_request_get tersedia
+      # =========================
+      - name: Check http_request_get function
+        run: |
+          php -r "require 'config/config.php'; if (!function_exists('http_request_get')) { exit(1); }"
+
+      # =========================
+      # Test Case 6: Sintaks PHP valid
+      # =========================
+      - name: Check PHP syntax
         run: php -l index.php
