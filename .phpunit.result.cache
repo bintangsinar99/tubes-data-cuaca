@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"WeatherClientTest::testApiKeyIsAvailable":0.936,"WeatherClientTest::testConfigFileExists":0.041,"WeatherClientTest::testHttpRequestFunctionExists":0.036,"WeatherClientTest::testApiRequestReturnsResponse":1.432,"WeatherClientTest::testApiResponseIsValidJson":0.323}}

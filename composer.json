@@ -1,0 +1,12 @@
+{
+  "name": "ppl/rest-client-cuaca",
+  "description": "REST Client Data Cuaca PHP",
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  },
+  "autoload": {
+    "files": [
+      "config/config.php"
+    ]
+  }
+}
